@@ -1,0 +1,90 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - app_network
+    environment:
+      - MONGODB_URI=mongodb://127.0.0.1:27017/ecommerce
+
+  auth-service:
+    build: ./services/auth-service
+    ports:
+      - "3001:3001"
+    depends_on:
+      - mongo-auth
+    volumes:
+      - ./services/auth-service:/app
+      - /app/node_modules
+    networks:
+      - app_network
+    environment:
+      - MONGODB_URI=mongodb://mongo-auth:27017/auth
+
+  order-service:
+    build: ./services/order-service
+    ports:
+      - "3002:3002"
+    depends_on:
+      - auth-service
+      - mongo-order
+    volumes:
+      - ./services/order-service:/app
+      - /app/node_modules
+    networks:
+      - app_network
+    environment:
+      - MONGODB_URI=mongodb://mongo-order:27017/orders
+
+  product-service:
+    build: ./services/product-service
+    ports:
+      - "3000:3000"
+    depends_on:
+      - auth-service
+      - mongo-product
+    volumes:
+      - ./services/product-service:/app
+      - /app/node_modules
+    networks:
+      - app_network
+    environment:
+      - MONGODB_URI=mongodb://mongo-product:27017/products
+
+  mongo-auth:
+    image: mongo
+    volumes:
+      - mongo_auth_data:/data/db
+    networks:
+      - app_network
+
+  mongo-order:
+    image: mongo
+    volumes:
+      - mongo_order_data:/data/db
+    networks:
+      - app_network
+
+  mongo-product:
+    image: mongo
+    volumes:
+      - mongo_product_data:/data/db
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  mongo_auth_data:
+  mongo_order_data:
+  mongo_product_data:

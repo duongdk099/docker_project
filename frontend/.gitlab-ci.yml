@@ -1,0 +1,41 @@
+stages:
+  - build
+  - test
+  - push
+  - deploy
+
+variables:
+  DOCKER_IMAGE: "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"
+  DOCKER_REGISTRY: "$CI_REGISTRY"
+
+before_script:
+  - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $DOCKER_REGISTRY
+
+build:
+  stage: build
+  script:
+    - docker build -t $DOCKER_IMAGE .
+  only:
+    - main
+
+test:
+  stage: test
+  script:
+    - docker run --rm $DOCKER_IMAGE npm test
+  only:
+    - main
+
+push:
+  stage: push
+  script:
+    - docker push $DOCKER_IMAGE
+  only:
+    - main
+
+deploy:
+  stage: deploy
+  script:
+    - docker pull $DOCKER_IMAGE
+    - docker stack deploy -c docker-compose.prod.yml e-commerce
+  only:
+    - main

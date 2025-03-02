@@ -1,0 +1,141 @@
+version: '3.8'
+
+services:
+  frontend:
+    image: myregistry.com/frontend:latest
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    networks:
+      - app_network
+    deploy:
+      mode: replicated
+      replicas: 3
+      placement:
+        constraints: [node.role == worker]
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "512M"
+    environment:
+      - MONGODB_URI=mongodb://mongo-product:27017/ecommerce
+
+  auth-service:
+    image: myregistry.com/auth-service:latest
+    env_file:
+      - ./services/auth-service/.env.production
+    secrets:
+      - jwt_secret
+    ports:
+      - "3000:3000"
+    networks:
+      - app_network
+    volumes:
+      - auth_data:/data/db
+    deploy:
+      mode: replicated
+      replicas: 2
+      placement:
+        constraints: [node.role == worker]
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "512M"
+    environment:
+      - MONGODB_URI=mongodb://mongo-auth:27017/auth
+
+  order-service:
+    image: myregistry.com/order-service:latest
+    env_file:
+      - ./services/order-service/.env.production
+    secrets:
+      - jwt_secret
+    ports:
+      - "3001:3001"
+    networks:
+      - app_network
+    volumes:
+      - order_data:/data/db
+    deploy:
+      mode: replicated
+      replicas: 2
+      placement:
+        constraints: [node.role == worker]
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "512M"
+    environment:
+      - MONGODB_URI=mongodb://mongo-order:27017/orders
+
+  product-service:
+    image: myregistry.com/product-service:latest
+    env_file:
+      - ./services/product-service/.env.production
+    secrets:
+      - jwt_secret
+    ports:
+      - "3002:3002"
+    networks:
+      - app_network
+    volumes:
+      - product_data:/data/db
+    deploy:
+      mode: replicated
+      replicas: 2
+      placement:
+        constraints: [node.role == worker]
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "512M"
+    environment:
+      - MONGODB_URI=mongodb://mongo-product:27017/products
+
+  mongo-auth:
+    image: mongo:4.4
+    volumes:
+      - mongo_auth_data:/data/db
+    networks:
+      - app_network
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
+  mongo-order:
+    image: mongo:4.4
+    volumes:
+      - mongo_order_data:/data/db
+    networks:
+      - app_network
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
+  mongo-product:
+    image: mongo:4.4
+    volumes:
+      - mongo_product_data:/data/db
+    networks:
+      - app_network
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
+networks:
+  app_network:
+    driver: overlay
+
+volumes:
+  auth_data:
+  order_data:
+  product_data:
+  mongo_auth_data:
+  mongo_order_data:
+  mongo_product_data:
+
+secrets:
+  jwt_secret:
+    file: ./secrets/jwt_secret
