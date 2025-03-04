@@ -14,12 +14,8 @@
    - [Démarrage Manuel](#démarrage-manuel)
 5. [API Endpoints](#api-endpoints)
 6. [CI/CD avec GitLab](#cicd-avec-gitlab)
-7. [Tests et Qualité du Code](#tests-et-qualité-du-code)
-   - [Tests Frontend](#tests-frontend)
-   - [Tests Backend](#tests-backend)
-   - [Sécurité et Monitoring](#sécurité-et-monitoring)
-8. [Bonnes Pratiques](#bonnes-pratiques)
-9. [Ressources et Documentation](#ressources-et-documentation)
+7. [Bonnes Pratiques](#bonnes-pratiques)
+8. [Ressources et Documentation](#ressources-et-documentation)
 
 ---
 
@@ -78,7 +74,7 @@ L’architecture repose sur :
 ```sh
 # 1️⃣ Cloner le projet
 git clone <repo_url>
-cd e-commerce-microservices
+cd docker-project
 
 # 2️⃣ Démarrer tous les services
 docker-compose up --build -d
@@ -140,34 +136,6 @@ Chaque commit sur `main` ou `develop` déclenche **automatiquement** le pipeline
 ```sh
 git push origin develop
 ```
-
----
-
-## **Tests et Qualité du Code**
-
-### **🔹 Tests Frontend**
-```sh
-cd frontend
-npm run test
-npm run test:coverage
-```
-
-### **🔹 Tests Backend**
-```sh
-cd services/auth-service
-npm test
-npm run lint
-```
-
-### **🔹 Sécurité et Monitoring**
-- **Scan de sécurité** (Trivy) :
-  ```sh
-  trivy image <image-name>
-  ```
-- **Logs Docker** :
-  ```sh
-  docker logs -f <container_id>
-  ```
 
 ---
 
